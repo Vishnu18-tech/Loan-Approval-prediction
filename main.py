@@ -7,7 +7,7 @@ df['loan_status'] = df['loan_status'].str.strip()
 #print(df.info()
 
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder,StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
@@ -29,11 +29,11 @@ treemodel=Pipeline(steps=[
 treemodel.fit(X_train,y_train)
 y_pred=treemodel.predict(X_test)
 y_proba=treemodel.predict_proba(X_test)[:,1]
-print(f"Accuracy : {accuracy_score(y_test,y_pred)}")
-print(f"f1 score : {f1_score(y_test,y_pred)}")
-print(f"roc_auc_score : {roc_auc_score(y_test,y_proba)}")
-print(f"classification report : \n{classification_report(y_test,y_pred)}")
-print(f"confusion matrix : \n{confusion_matrix(y_test,y_pred)}")
+print(f"Accuracy(DT) : {accuracy_score(y_test,y_pred)}")
+print(f"f1 score(DT) : {f1_score(y_test,y_pred)}")
+print(f"roc_auc_score(DT) : {roc_auc_score(y_test,y_proba)}")
+print(f"classification report(DT) : \n{classification_report(y_test,y_pred)}")
+print(f"confusion matrix(DT) : \n{confusion_matrix(y_test,y_pred)}")
 
 
 from sklearn.tree import plot_tree
@@ -50,7 +50,7 @@ plot_tree(
     rounded=True,
     fontsize=8
 )
-plt.show()
+#plt.show()
 fpr,tpr,thresholds=roc_curve(y_test,y_pred)
 plt.figure()
 plt.plot(fpr,tpr,label='area = %0.2f'%roc_auc_score(y_test,y_pred))
@@ -60,4 +60,48 @@ plt.grid(True)
 plt.xlabel('FPR')
 plt.ylabel('TPR')
 plt.title('ROC CURVE')
-plt.show()
+#plt.show()
+
+from sklearn.linear_model import LogisticRegression
+preprocessingLR = ColumnTransformer(
+    transformers=[
+        ('num',StandardScaler(),numcols),
+        ('cat',OneHotEncoder(),catcols)
+    ],
+)
+LRmodel=Pipeline(steps=[
+    ('preprocessor',preprocessingLR),
+    ('classifier',LogisticRegression(class_weight='balanced',max_iter=1000))
+])
+LRmodel.fit(X_train,y_train)
+yLR_pred=LRmodel.predict(X_test)
+yLR_proba=LRmodel.predict_proba(X_test)[:,1]
+print(f"Accuracy(LR) : {accuracy_score(y_test,yLR_pred)}")
+print(f"f1 score(LR) : {f1_score(y_test,yLR_pred)}")
+print(f"roc_auc_score(LR) : {roc_auc_score(y_test,yLR_proba)}")
+print(f"classification report(LR) : \n{classification_report(y_test,yLR_pred)}")
+print(f"confusion matrix(LR) : \n{confusion_matrix(y_test,yLR_pred)}")
+
+from sklearn.svm import SVC
+preprocessingSVC=ColumnTransformer(
+    transformers=[
+        ('num',StandardScaler(),numcols),
+        ('cat',OneHotEncoder(),catcols)
+    ],
+)
+SVCmodel=Pipeline(steps=[
+    ('preprocessing',preprocessingSVC),
+    ('classifier',SVC(class_weight='balanced',kernel='rbf',probability=True))
+])
+SVCmodel.fit(X_train,y_train)
+ySVC_pred=SVCmodel.predict(X_test)
+ySVC_proba=SVCmodel.predict_proba(X_test)[:,1]
+print(f"Accuracy(SVC) : {accuracy_score(y_test,ySVC_pred)}")
+print(f"f1 score(SVC) : {f1_score(y_test,ySVC_pred)}")
+print(f"roc_auc_score(SVC) : {roc_auc_score(y_test,ySVC_proba)}")
+print(f"classification report(SVC) : \n{classification_report(y_test,ySVC_pred)}")
+print(f"confusion matrix(SVC) : \n{confusion_matrix(y_test,ySVC_pred)}")
+
+modelevs=pd.DataFrame({"Model" : ['Decision Trees','Logistic Regression','SVC'],
+                       "Accuracy" : [accuracy_score(y_test,y_pred),accuracy_score(y_test,yLR_pred),accuracy_score(y_test,ySVC_pred)]})
+print(modelevs)
