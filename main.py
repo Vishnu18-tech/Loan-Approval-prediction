@@ -35,33 +35,6 @@ print(f"roc_auc_score(DT) : {roc_auc_score(y_test,y_proba)}")
 print(f"classification report(DT) : \n{classification_report(y_test,y_pred)}")
 print(f"confusion matrix(DT) : \n{confusion_matrix(y_test,y_pred)}")
 
-
-from sklearn.tree import plot_tree
-tree = treemodel.named_steps['classifier']
-ohe = treemodel.named_steps['preprocessor'].named_transformers_['cat']
-encoded_cat_features = ohe.get_feature_names_out(catcols)
-feature_names = list(encoded_cat_features) + list(numcols)
-plt.figure()
-plot_tree(
-    tree,
-    feature_names=feature_names,
-    class_names=['Rejected', 'Approved'],
-    filled=True,
-    rounded=True,
-    fontsize=8
-)
-#plt.show()
-fpr,tpr,thresholds=roc_curve(y_test,y_pred)
-plt.figure()
-plt.plot(fpr,tpr,label='area = %0.2f'%roc_auc_score(y_test,y_pred))
-plt.plot([0,1],[0,1],'r--')
-plt.legend(loc='best')
-plt.grid(True)
-plt.xlabel('FPR')
-plt.ylabel('TPR')
-plt.title('ROC CURVE')
-#plt.show()
-
 from sklearn.linear_model import LogisticRegression
 preprocessingLR = ColumnTransformer(
     transformers=[
@@ -100,8 +73,57 @@ print(f"Accuracy(SVC) : {accuracy_score(y_test,ySVC_pred)}")
 print(f"f1 score(SVC) : {f1_score(y_test,ySVC_pred)}")
 print(f"roc_auc_score(SVC) : {roc_auc_score(y_test,ySVC_proba)}")
 print(f"classification report(SVC) : \n{classification_report(y_test,ySVC_pred)}")
-print(f"confusion matrix(SVC) : \n{confusion_matrix(y_test,ySVC_pred)}")
+print(f"confusion matrix(SVC) : \n{confusion_matrix(y_test,ySVC_pred)}\n\n")
 
-modelevs=pd.DataFrame({"Model" : ['Decision Trees','Logistic Regression','SVC'],
+modelevs=pd.DataFrame({"Model" : ['Decision Trees','Logistic Regression','SupportVectorClassification'],
                        "Accuracy" : [accuracy_score(y_test,y_pred),accuracy_score(y_test,yLR_pred),accuracy_score(y_test,ySVC_pred)]})
 print(modelevs)
+
+from sklearn.tree import plot_tree
+tree = treemodel.named_steps['classifier']
+ohe = treemodel.named_steps['preprocessor'].named_transformers_['cat']
+encoded_cat_features = ohe.get_feature_names_out(catcols)
+feature_names = list(encoded_cat_features) + list(numcols)
+plt.figure()
+plot_tree(
+    tree,
+    feature_names=feature_names,
+    class_names=['Rejected', 'Approved'],
+    filled=True,
+    rounded=True,
+    fontsize=8
+)
+plt.show()
+
+fpr,tpr,thresholds=roc_curve(y_test,y_proba)
+plt.figure()
+plt.plot(fpr,tpr,label='area = %0.2f'%roc_auc_score(y_test,y_proba))
+plt.plot([0,1],[0,1],'r--')
+plt.legend(loc='best')
+plt.grid(True)
+plt.xlabel('FPR')
+plt.ylabel('TPR')
+plt.title('ROC CURVE (DT)')
+plt.show()
+
+fpr,tpr,thresholds=roc_curve(y_test,yLR_proba)
+plt.figure()
+plt.plot(fpr,tpr,label='area = %0.2f'%roc_auc_score(y_test,yLR_proba))
+plt.plot([0,1],[0,1],'r--')
+plt.legend(loc='best')
+plt.grid(True)
+plt.xlabel('FPR')
+plt.ylabel('TPR')
+plt.title('ROC CURVE (LR)')
+plt.show()
+
+fpr,tpr,thresholds=roc_curve(y_test,ySVC_proba)
+plt.figure()
+plt.plot(fpr,tpr,label='area = %0.2f'%roc_auc_score(y_test,ySVC_proba))
+plt.plot([0,1],[0,1],'r--')
+plt.legend(loc='best')
+plt.grid(True)
+plt.xlabel('FPR')
+plt.ylabel('TPR')
+plt.title('ROC CURVE (SVC)')
+plt.show()
